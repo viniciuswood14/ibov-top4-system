@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: ibov-top4-web
+    env: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: BRAPI_TOKEN
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ibov-top4-db
+          property: connectionString
+
+  - type: cron
+    name: ibov-top4-monthly
+    env: python
+    plan: starter
+    schedule: "0 12 1 * *"
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m cron.run_monthly_rebalance
+    envVars:
+      - key: SERVICE_URL
+        sync: false
+
+databases:
+  - name: ibov-top4-db
+    plan: starter
